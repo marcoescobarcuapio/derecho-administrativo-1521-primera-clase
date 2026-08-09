@@ -9,10 +9,14 @@
   const previous = document.getElementById("previous");
   const next = document.getElementById("next");
   const mapToggle = document.getElementById("map-toggle");
+  const slideIndex = document.getElementById("slide-index");
+  const indexClose = document.getElementById("index-close");
   const status = document.getElementById("live-status");
   const progressText = document.getElementById("progress-text");
   const progressFill = document.getElementById("progress-fill");
+  const touchLayout = window.matchMedia("(max-width: 1023px), (hover: none) and (pointer: coarse)");
   let mapVisible = false;
+  let pointerStart = null;
 
   function updateHash(step) {
     if (!step) return;
@@ -34,7 +38,8 @@
     mapToggle.setAttribute("aria-pressed", "false");
     const step = deck.goto(target);
     if (!step) return;
-    window.scrollTo(0, 0);
+    if (touchLayout.matches) step.scrollTop = 0;
+    else window.scrollTo(0, 0);
     updateHash(step);
     announce(step);
     if (moveFocus) step.focus({preventScroll: true});
@@ -44,7 +49,28 @@
     go(Math.max(0, Math.min(steps.length - 1, deck.index() + delta)), true);
   }
 
+  function closeIndex() {
+    if (!slideIndex || !slideIndex.open) return;
+    slideIndex.close();
+    mapToggle.setAttribute("aria-pressed", "false");
+    status.textContent = "Índice cerrado";
+  }
+
+  function openIndex() {
+    if (!slideIndex || slideIndex.open) return;
+    if (typeof slideIndex.showModal === "function") slideIndex.showModal();
+    else slideIndex.setAttribute("open", "");
+    mapToggle.setAttribute("aria-pressed", "true");
+    status.textContent = "Índice de diapositivas abierto";
+  }
+
   function toggleMap(force) {
+    if (touchLayout.matches) {
+      const shouldOpen = typeof force === "boolean" ? force : !(slideIndex && slideIndex.open);
+      if (shouldOpen) openIndex();
+      else closeIndex();
+      return;
+    }
     mapVisible = typeof force === "boolean" ? force : !mapVisible;
     document.body.classList.toggle("map-view", mapVisible);
     mapToggle.setAttribute("aria-pressed", String(mapVisible));
@@ -55,8 +81,21 @@
   previous.addEventListener("click", function () { move(-1); });
   next.addEventListener("click", function () { move(1); });
   mapToggle.addEventListener("click", function () { toggleMap(); });
+  if (indexClose) indexClose.addEventListener("click", closeIndex);
+  if (slideIndex) {
+    slideIndex.addEventListener("click", function (event) {
+      if (event.target === slideIndex) closeIndex();
+    });
+  }
 
   document.addEventListener("click", function (event) {
+    const indexButton = event.target.closest("[data-slide-target]");
+    if (indexButton) {
+      const target = document.getElementById(indexButton.getAttribute("data-slide-target"));
+      if (target) go(target, true);
+      closeIndex();
+      return;
+    }
     const link = event.target.closest('a[href^="#"]');
     if (!link) return;
     const target = document.getElementById(link.getAttribute("href").slice(1));
@@ -74,8 +113,42 @@
     else if (backward.includes(event.key)) { event.preventDefault(); move(-1); }
     else if (event.key === "Home") { event.preventDefault(); go(0, true); }
     else if (event.key === "End") { event.preventDefault(); go(steps.length - 1, true); }
-    else if (event.key === "Escape") { event.preventDefault(); toggleMap(false); }
+    else if (event.key === "Escape") {
+      event.preventDefault();
+      if (slideIndex && slideIndex.open) closeIndex();
+      else toggleMap(false);
+    }
     else if (event.key.toLowerCase() === "m") { event.preventDefault(); toggleMap(); }
+  });
+
+  root.addEventListener("pointerdown", function (event) {
+    if (!touchLayout.matches || event.isPrimary === false) return;
+    if (event.target.closest("a, button, input, textarea, select, dialog")) return;
+    pointerStart = {id: event.pointerId, x: event.clientX, y: event.clientY};
+    if (typeof root.setPointerCapture === "function") root.setPointerCapture(event.pointerId);
+  }, {passive: true});
+
+  root.addEventListener("pointerup", function (event) {
+    if (!touchLayout.matches || !pointerStart || event.pointerId !== pointerStart.id) return;
+    const horizontal = event.clientX - pointerStart.x;
+    const vertical = event.clientY - pointerStart.y;
+    if (typeof root.releasePointerCapture === "function" && root.hasPointerCapture(event.pointerId)) {
+      root.releasePointerCapture(event.pointerId);
+    }
+    pointerStart = null;
+    if (Math.abs(horizontal) < 48 || Math.abs(horizontal) < Math.abs(vertical) * 1.25) return;
+    move(horizontal < 0 ? 1 : -1);
+  }, {passive: true});
+
+  root.addEventListener("pointercancel", function () { pointerStart = null; }, {passive: true});
+
+  touchLayout.addEventListener("change", function () {
+    pointerStart = null;
+    closeIndex();
+    document.body.classList.remove("map-view");
+    mapVisible = false;
+    mapToggle.setAttribute("aria-pressed", "false");
+    go(deck.index(), false);
   });
 
   const initial = window.location.hash ? document.getElementById(window.location.hash.slice(1)) : null;
