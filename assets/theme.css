@@ -30,8 +30,8 @@
   --muted: #667788;
   --line: #c8d3dd;
   --pale: #e8eef4;
-  --duration: 160ms;
-  --ease: cubic-bezier(.22, .61, .36, 1);
+  --duration: 480ms;
+  --ease: cubic-bezier(.22, .72, .26, 1);
   --header-safe-height: 78px;
   --pictogram-size: 124px;
   font-family: Montserrat, Arial, sans-serif;
@@ -103,6 +103,7 @@ button, a { font: inherit; }
   top: calc(50vh - 335px);
   width: 1280px;
   height: 720px;
+  transform-origin: 50% 50%;
   transform-style: preserve-3d;
   will-change: transform;
   transition: transform var(--duration) var(--ease);

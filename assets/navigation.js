@@ -17,6 +17,9 @@
   const touchLayout = window.matchMedia("(max-width: 1023px), (hover: none) and (pointer: coarse)");
   let mapVisible = false;
   let pointerStart = null;
+  let movementLocked = false;
+  let pendingMove = 0;
+  let movementFallback = 0;
 
   function updateHash(step) {
     if (!step) return;
@@ -36,8 +39,15 @@
     mapVisible = false;
     document.body.classList.remove("map-view");
     mapToggle.setAttribute("aria-pressed", "false");
+    const previousIndex = deck.index();
     const step = deck.goto(target);
     if (!step) return;
+    if (!touchLayout.matches && deck.index() !== previousIndex) {
+      movementLocked = true;
+      root.classList.add("is-moving");
+      window.clearTimeout(movementFallback);
+      movementFallback = window.setTimeout(finishMovement, 560);
+    }
     if (touchLayout.matches) step.scrollTop = 0;
     else window.scrollTo(0, 0);
     updateHash(step);
@@ -46,7 +56,24 @@
   }
 
   function move(delta) {
+    if (!touchLayout.matches && movementLocked) {
+      pendingMove += delta;
+      return;
+    }
     go(Math.max(0, Math.min(steps.length - 1, deck.index() + delta)), true);
+  }
+
+  function finishMovement() {
+    if (!movementLocked) return;
+    movementLocked = false;
+    root.classList.remove("is-moving");
+    window.clearTimeout(movementFallback);
+    movementFallback = 0;
+    if (pendingMove !== 0) {
+      const delta = Math.sign(pendingMove);
+      pendingMove -= delta;
+      move(delta);
+    }
   }
 
   function closeIndex() {
@@ -81,6 +108,10 @@
   previous.addEventListener("click", function () { move(-1); });
   next.addEventListener("click", function () { move(1); });
   mapToggle.addEventListener("click", function () { toggleMap(); });
+  root.addEventListener("transitionend", function (event) {
+    if (event.target !== root || event.propertyName !== "transform") return;
+    finishMovement();
+  });
   if (indexClose) indexClose.addEventListener("click", closeIndex);
   if (slideIndex) {
     slideIndex.addEventListener("click", function (event) {
@@ -144,6 +175,10 @@
 
   touchLayout.addEventListener("change", function () {
     pointerStart = null;
+    movementLocked = false;
+    pendingMove = 0;
+    window.clearTimeout(movementFallback);
+    root.classList.remove("is-moving");
     closeIndex();
     document.body.classList.remove("map-view");
     mapVisible = false;
