@@ -30,8 +30,8 @@
   --muted: #667788;
   --line: #c8d3dd;
   --pale: #e8eef4;
-  --duration: 240ms;
-  --ease: cubic-bezier(.22, .72, .28, 1);
+  --duration: 140ms;
+  --ease: cubic-bezier(.16, .82, .24, 1);
   --header-safe-height: 78px;
   --pictogram-size: 124px;
   font-family: Montserrat, Arial, sans-serif;
@@ -103,6 +103,7 @@ button, a { font: inherit; }
   width: 1280px;
   height: 720px;
   transform-style: preserve-3d;
+  will-change: transform;
   transition: transform var(--duration) var(--ease);
   transform: translate(-50%, -50%) translate(var(--view-x, 0), var(--view-y, 0)) scale(var(--view-scale, 1)) rotate(var(--view-rotate, 0));
 }
@@ -114,13 +115,12 @@ button, a { font: inherit; }
   overflow: hidden;
   color: var(--ink);
   background: var(--paper);
-  box-shadow: 0 34px 95px rgb(0 40 85 / .25);
+  box-shadow: none;
   transform: translate(var(--step-x, 0), var(--step-y, 0)) scale(var(--step-scale, 1)) rotate(var(--step-rotate, 0));
-  opacity: .16;
-  filter: saturate(.76);
-  transition: opacity var(--duration) var(--ease), filter var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+  opacity: .12;
+  transition: opacity var(--duration) var(--ease);
 }
-.step.is-active { opacity: 1; filter: none; box-shadow: 0 38px 105px rgb(0 40 85 / .3); }
+.step.is-active { opacity: 1; box-shadow: 0 28px 72px rgb(0 40 85 / .26); }
 .top-bar {
   position: absolute;
   z-index: 5;
