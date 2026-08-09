@@ -30,7 +30,7 @@
   --muted: #667788;
   --line: #c8d3dd;
   --pale: #e8eef4;
-  --duration: 140ms;
+  --duration: 70ms;
   --ease: cubic-bezier(.16, .82, .24, 1);
   --header-safe-height: 78px;
   --pictogram-size: 124px;
@@ -97,15 +97,15 @@ button, a { font: inherit; }
 }
 
 .impress {
-  position: absolute;
-  left: 50%;
-  top: 52%;
+  position: fixed;
+  left: 50vw;
+  top: calc(50vh + 25px);
   width: 1280px;
   height: 720px;
   transform-style: preserve-3d;
   will-change: transform;
   transition: transform var(--duration) var(--ease);
-  transform: translate(-50%, -50%) translate(var(--view-x, 0), var(--view-y, 0)) scale(var(--view-scale, 1)) rotate(var(--view-rotate, 0));
+  transform: translate(-50%, -50%) scale(var(--view-scale, 1)) rotate(var(--view-rotate, 0)) translate(var(--view-x, 0), var(--view-y, 0));
 }
 .step, .page {
   position: absolute;
