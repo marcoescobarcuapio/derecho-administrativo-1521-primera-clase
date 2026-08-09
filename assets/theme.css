@@ -353,7 +353,8 @@ p { margin: .55em 0; }
 body > footer { position: fixed; z-index: 20; left: 24px; bottom: 14px; color: var(--muted); font-size: .62rem; }
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 .map-view .impress { transform: scale(.13) translate(-1420px, -2460px); }
-.map-view .step { opacity: 1; filter: none; }
+.map-view .step { opacity: 1; filter: none; cursor: pointer; }
+.map-view .step:hover,
 .map-view .step:focus { box-shadow: 0 0 0 16px var(--gold); }
 
 /* Navegación táctil: una sola lámina, sin lienzo espacial ni animación pesada. */

@@ -6,6 +6,7 @@
   const deck = window.impress("contenido");
   deck.init();
   const steps = deck.steps ? deck.steps() : [];
+  const home = document.getElementById("home");
   const previous = document.getElementById("previous");
   const next = document.getElementById("next");
   const mapToggle = document.getElementById("map-toggle");
@@ -156,9 +157,17 @@
     if (!mapVisible) go(deck.index(), true);
   }
 
+  home.addEventListener("click", function () { go(0, true); });
   previous.addEventListener("click", function () { move(-1); });
   next.addEventListener("click", function () { move(1); });
   mapToggle.addEventListener("click", function () { toggleMap(); });
+  root.addEventListener("click", function (event) {
+    if (!mapVisible || touchLayout.matches) return;
+    const selectedStep = event.target.closest(".step");
+    if (!selectedStep || !root.contains(selectedStep)) return;
+    event.preventDefault();
+    go(selectedStep, true);
+  });
   root.addEventListener("transitionend", function (event) {
     if (event.target !== root || event.propertyName !== "transform") return;
     finishMovement();
