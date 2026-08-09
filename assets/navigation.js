@@ -20,6 +20,57 @@
   let movementLocked = false;
   let pendingMove = 0;
   let movementFallback = 0;
+  let fitFrame = 0;
+
+  function resetSlideFit(step) {
+    if (!step) return;
+    const content = step.querySelector(".slide-content");
+    if (!content) return;
+    content.style.removeProperty("width");
+    content.style.removeProperty("transform");
+    step.setAttribute("data-fit-scale", "1.000");
+    step.removeAttribute("data-fit-overflow");
+  }
+
+  function fitActiveSlide(step) {
+    if (!step) return;
+    resetSlideFit(step);
+    if (!touchLayout.matches) return;
+    const content = step.querySelector(".slide-content");
+    if (!content) return;
+    const availableHeight = content.clientHeight;
+    const availableWidth = content.clientWidth;
+    if (availableHeight <= 0 || availableWidth <= 0) return;
+
+    let scale = 1;
+    for (let pass = 0; pass < 4; pass += 1) {
+      content.style.width = (100 / scale).toFixed(3) + "%";
+      const naturalHeight = content.scrollHeight;
+      const naturalWidth = content.scrollWidth;
+      const nextScale = Math.min(
+        1,
+        availableHeight / Math.max(naturalHeight, 1),
+        availableWidth / Math.max(naturalWidth, 1)
+      );
+      if (Math.abs(nextScale - scale) < 0.004) {
+        scale = nextScale;
+        break;
+      }
+      scale = nextScale;
+    }
+    scale = Math.max(0.68, Math.min(1, scale));
+    content.style.width = (100 / scale).toFixed(3) + "%";
+    content.style.transform = "scale(" + scale.toFixed(4) + ")";
+    step.setAttribute("data-fit-scale", scale.toFixed(3));
+    const overflow = content.scrollHeight * scale > availableHeight + 2
+      || content.scrollWidth * scale > availableWidth + 2;
+    step.setAttribute("data-fit-overflow", String(overflow));
+  }
+
+  function scheduleFit(step) {
+    window.cancelAnimationFrame(fitFrame);
+    fitFrame = window.requestAnimationFrame(function () { fitActiveSlide(step); });
+  }
 
   function updateHash(step) {
     if (!step) return;
@@ -48,8 +99,8 @@
       window.clearTimeout(movementFallback);
       movementFallback = window.setTimeout(finishMovement, 560);
     }
-    if (touchLayout.matches) step.scrollTop = 0;
-    else window.scrollTo(0, 0);
+    scheduleFit(step);
+    if (touchLayout.matches) window.scrollTo(0, 0);
     updateHash(step);
     announce(step);
     if (moveFocus) step.focus({preventScroll: true});
@@ -185,6 +236,14 @@
     mapToggle.setAttribute("aria-pressed", "false");
     go(deck.index(), false);
   });
+
+  window.addEventListener("resize", function () {
+    scheduleFit(steps[deck.index()]);
+  });
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { scheduleFit(steps[deck.index()]); });
+  }
 
   const initial = window.location.hash ? document.getElementById(window.location.hash.slice(1)) : null;
   go(initial && initial.classList.contains("step") ? initial : 0, false);
