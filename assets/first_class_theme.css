@@ -30,8 +30,8 @@
   --muted: #667788;
   --line: #c8d3dd;
   --pale: #e8eef4;
-  --duration: 480ms;
-  --ease: cubic-bezier(.22, .72, .26, 1);
+  --duration: 560ms;
+  --ease: cubic-bezier(.22, .62, .28, 1);
   --header-safe-height: 78px;
   --pictogram-size: 124px;
   font-family: Montserrat, Arial, sans-serif;

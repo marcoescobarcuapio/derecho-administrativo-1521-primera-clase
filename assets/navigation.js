@@ -97,7 +97,7 @@
       movementLocked = true;
       root.classList.add("is-moving");
       window.clearTimeout(movementFallback);
-      movementFallback = window.setTimeout(finishMovement, 560);
+      movementFallback = window.setTimeout(finishMovement, 660);
     }
     scheduleFit(step);
     if (touchLayout.matches) window.scrollTo(0, 0);
